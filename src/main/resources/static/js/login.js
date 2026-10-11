@@ -27,7 +27,7 @@ loginForm.addEventListener( 'submit', async(event) =>
             window.location.replace("/dashboard");
         }
     } catch (error) {
-        loginFormResult.textContent = "Une erreur est survenue. RÃ©essayez.";
+        loginFormResult.textContent = "Une erreur est survenue. Réessayez.";
         console.error("Registration failed:", error);
     }
 });
@@ -39,7 +39,8 @@ loginForm.addEventListener( 'submit', async(event) =>
 const logoutBtn = document.getElementById('logoutBtn');
 
 if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener("click", async () =>
+    {
         logoutBtn.disabled = true;
 
         try {
@@ -52,9 +53,13 @@ if (logoutBtn) {
                 throw new Error("CSRF token is missing");
             }
 
-            const response = await fetch("/logout", {
+            const response = await fetch("/logout",
+            {
                 method: "POST",
+
+                // (JSESSIONID) accompanies the fetch request to the backend.
                 credentials: "same-origin",
+
                 headers: { "X-CSRF-TOKEN": csrfToken }
             });
 

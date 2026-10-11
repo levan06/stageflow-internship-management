@@ -13,12 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Base64;
-
 
 @Controller 
 public class DashboardController 
@@ -29,7 +23,6 @@ public class DashboardController
     {
         this.tokenService = tokenService;
     }
-
 
     @GetMapping("/dashboard")
     public String getDashboardPage( HttpServletRequest request, Model model) 

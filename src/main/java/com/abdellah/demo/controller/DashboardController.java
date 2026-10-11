@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -28,7 +29,6 @@ public class DashboardController
             HttpServletRequest request,
             Model model) 
     {
-
         /* No session ==> login page */
         HttpSession session = request.getSession(false);
         if (session == null) 
@@ -43,9 +43,8 @@ public class DashboardController
             return "redirect:/login.html";
         }
 
-        // Get the existing token or create a new one.
-        String csrfToken =
-                (String) session.getAttribute("csrfToken");
+        /* Valid Session ==> Get the existing token or create a new one */
+        String csrfToken = (String) session.getAttribute("csrfToken");
 
         if (csrfToken == null) 
         {
@@ -70,7 +69,6 @@ public class DashboardController
             HttpServletRequest request,
             HttpServletResponse response)
     {
-
         HttpSession session = request.getSession(false);
         /*----------------------*/
         /* Session Verification */
@@ -85,14 +83,11 @@ public class DashboardController
         /*     Validate the CSRF Token      */
         /*----------------------------------*/
         String expectedToken  = (String) session.getAttribute("csrfToken");
-
         String submittedToken = request.getHeader("X-CSRF-TOKEN");
 
-        if (expectedToken == null
-                || submittedToken == null
-                || ! MessageDigest.isEqual(
-                        expectedToken.getBytes(StandardCharsets.UTF_8),
-                        submittedToken.getBytes(StandardCharsets.UTF_8))) 
+        if (expectedToken == null 
+                || submittedToken == null 
+                || !secureTokenEquals(expectedToken, submittedToken)) 
         {
             return ResponseEntity.status(403)
                     .body("Invalid CSRF token");
@@ -105,7 +100,7 @@ public class DashboardController
 
         // Creating a cookie with the same name
         Cookie cookie = new Cookie("JSESSIONID", "");
-        cookie.setMaxAge(0); //Delete immediately
+        cookie.setMaxAge(0); // Delete immediately
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(request.isSecure());
@@ -114,5 +109,22 @@ public class DashboardController
         response.addCookie(cookie);
 
         return ResponseEntity.ok("Logged Out");
+    }
+
+    /**
+     * Hashes both inputs to a fixed 32-byte size before running MessageDigest.isEqual.
+     * This protects against timing attacks that leak token string lengths.
+     */
+    private boolean secureTokenEquals(String expected, String submitted) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            
+            byte[] expectedHash  = md.digest(expected.getBytes(StandardCharsets.UTF_8));
+            byte[] submittedHash = md.digest(submitted.getBytes(StandardCharsets.UTF_8));
+            
+            return MessageDigest.isEqual(expectedHash, submittedHash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm is missing from JVM execution environment", e);
+        }
     }
 }

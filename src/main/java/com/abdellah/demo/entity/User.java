@@ -19,7 +19,7 @@ public class User
     /*   Attributs   */
     /*===============*/
     @Id 
-    @GeneratedValue (strategy = GenerationType.IDENTITY)   
+    @GeneratedValue (strategy = GenerationType.IDENTITY) // Auto-increment ID 
     private Long id;
     
     @NotBlank(message = "Name cannot be blank")
@@ -30,6 +30,7 @@ public class User
     @Column  (nullable = false, unique = true)
     private String email;
 
+    // The password can be received, but will never be sent out
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(message = "Password cannot be blank")
     @Column  (nullable = false)
@@ -44,7 +45,7 @@ public class User
     /*================*/
     /*    Getters     */
     /*================*/
-    public long getId()
+    public Long getId()
     {
         return this.id;
     }

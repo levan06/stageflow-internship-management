@@ -6,6 +6,7 @@ import com.abdellah.demo.entity.User;
 import com.abdellah.demo.service.UserAuthService;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class UserAuthController
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register( @RequestBody User user ) 
+    public ResponseEntity<String> register(@Valid @RequestBody User user ) 
     {
         String registerResponse = this.userService.isUserRegisterValid(user); 
 

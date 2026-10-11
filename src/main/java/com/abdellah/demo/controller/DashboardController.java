@@ -6,6 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.abdellah.demo.service.TokenService;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,24 +23,20 @@ import java.util.Base64;
 @Controller 
 public class DashboardController 
 {
-    // Using SecureRandom for cryptographically secure and unpredictable values.
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private final TokenService tokenService;
+
+    public DashboardController( TokenService tokenService )
+    {
+        this.tokenService = tokenService;
+    }
+
 
     @GetMapping("/dashboard")
-    public String getDashboardPage(
-            HttpServletRequest request,
-            Model model) 
+    public String getDashboardPage( HttpServletRequest request, Model model) 
     {
-        /* No session ==> login page */
+        /* No session OR userId ==> login page */
         HttpSession session = request.getSession(false);
-        if (session == null) 
-        {
-            return "redirect:/login.html";
-        }
-
-        /* No userId ==> login page */
-        Object id = session.getAttribute("userId");
-        if (id == null) 
+        if (session == null || session.getAttribute("userId") == null)
         {
             return "redirect:/login.html";
         }
@@ -48,21 +46,15 @@ public class DashboardController
 
         if (csrfToken == null) 
         {
-            byte[] tokenBytes = new byte[32];
-            SECURE_RANDOM.nextBytes(tokenBytes);
-
-            csrfToken = Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(tokenBytes);
-
+            csrfToken = tokenService.generateCsrfToken();
             session.setAttribute("csrfToken", csrfToken);
         }
 
         // Make the token available to Thymeleaf.
         model.addAttribute("csrfToken", csrfToken);
-
         return "dashboard";
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
@@ -75,8 +67,7 @@ public class DashboardController
         /*----------------------*/
         if (session == null)
         {
-            return ResponseEntity.status(401)
-                    .body("Not logged in");
+            return ResponseEntity.status(401).body("Not logged in");
         }
 
         /*----------------------------------*/
@@ -85,12 +76,9 @@ public class DashboardController
         String expectedToken  = (String) session.getAttribute("csrfToken");
         String submittedToken = request.getHeader("X-CSRF-TOKEN");
 
-        if (expectedToken == null 
-                || submittedToken == null 
-                || !secureTokenEquals(expectedToken, submittedToken)) 
+        if (!tokenService.secureTokenEquals(expectedToken, submittedToken)) 
         {
-            return ResponseEntity.status(403)
-                    .body("Invalid CSRF token");
+            return ResponseEntity.status(403).body("Invalid CSRF token");
         }
 
         /*----------------------------------*/
@@ -109,22 +97,5 @@ public class DashboardController
         response.addCookie(cookie);
 
         return ResponseEntity.ok("Logged Out");
-    }
-
-    /**
-     * Hashes both inputs to a fixed 32-byte size before running MessageDigest.isEqual.
-     * This protects against timing attacks that leak token string lengths.
-     */
-    private boolean secureTokenEquals(String expected, String submitted) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            
-            byte[] expectedHash  = md.digest(expected.getBytes(StandardCharsets.UTF_8));
-            byte[] submittedHash = md.digest(submitted.getBytes(StandardCharsets.UTF_8));
-            
-            return MessageDigest.isEqual(expectedHash, submittedHash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 algorithm is missing from JVM execution environment", e);
-        }
     }
 }

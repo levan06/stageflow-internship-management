@@ -3,6 +3,7 @@ package com.abdellah.demo.service;
 import com.abdellah.demo.entity.User;
 import com.abdellah.demo.repository.UserRepository;
 
+import java.time.LocalDateTime;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,14 +11,17 @@ import org.springframework.stereotype.Service;
 @Service 
 public class UserAuthService 
 {
-    private final UserRepository userRepository;
+    private final UserRepository        userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final TokenService          tokenService;
 
-    public UserAuthService( UserRepository userRepository, 
-                            BCryptPasswordEncoder passwordEncoder )
+    public UserAuthService( UserRepository        userRepository, 
+                            BCryptPasswordEncoder passwordEncoder,
+                            TokenService          tokenService )
     {
         this.userRepository  = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService    = tokenService;
     }
 
     /**
@@ -31,7 +35,7 @@ public class UserAuthService
             return "User null";
 
         /* Name Verifications */
-        if( user.getNom() == null || user.getNom().isBlank() ) 
+        if( user.getName() == null || user.getName().isBlank() ) 
             return "Enter Name";
 
         /* Email Verifications */
@@ -47,6 +51,22 @@ public class UserAuthService
 
         return "Valid";
     }
+
+    /**
+     * Method to create a Token for email Verification
+     * 
+     * @param user
+     */
+    public void createEmailVerificationToken(User user)
+    {
+        String token = tokenService.generateSecureToken();
+
+        user.setEmailVerificationToken(token);
+        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(30));
+
+        userRepository.save(user);
+    }
+
 
     /**
      * 

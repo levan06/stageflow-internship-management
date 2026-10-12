@@ -14,21 +14,23 @@ public class TokenService
     // Using SecureRandom for cryptographically secure and unpredictable values.
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    /* Generating the CSRF Token */
-    public String generateCsrfToken()
+    /* Generating a generic secure token */
+    public String generateSecureToken()
     {
-        String csrfToken;
-
         byte[] tokenBytes = new byte[32];
         SECURE_RANDOM.nextBytes(tokenBytes);
 
-        csrfToken = Base64.getUrlEncoder()
+        return Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(tokenBytes);
-
-        return csrfToken;
     }
 
+    /* Generating the CSRF Token */
+    public String generateCsrfToken()
+    {
+        return generateSecureToken();
+    }
+    
 
     /**
      * Hashes both inputs to a fixed 32-byte size before running MessageDigest.isEqual.

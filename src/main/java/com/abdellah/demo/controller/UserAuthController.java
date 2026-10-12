@@ -1,7 +1,5 @@
 package com.abdellah.demo.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-
 import com.abdellah.demo.entity.User;
 import com.abdellah.demo.service.UserAuthService;
 
@@ -10,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,15 +28,17 @@ public class UserAuthController
     public ResponseEntity<String> register(@Valid @RequestBody User user ) 
     {
         String registerResponse = this.userService.isUserRegisterValid(user); 
-
-        if( ! registerResponse.equals("Valid") )
+        if( !registerResponse.equals("Valid") )
         {
-            return ResponseEntity.badRequest()
-                             .body(registerResponse);
+            return ResponseEntity.badRequest().body(registerResponse);
         }
 
         userService.createUser(user);
-        return ResponseEntity.ok("Account Created");
+
+        // Generate and save the email verification token.
+        userService.createEmailVerificationToken(user);
+
+        return ResponseEntity.ok("Account created. Please verify your email.");
     }
 
     @PostMapping("/login")
@@ -62,6 +63,7 @@ public class UserAuthController
         return ResponseEntity.ok("Valid Account");
     }
 
+    /* FOR TESTS AND VERIFICAIONS */
     @GetMapping("/session")
     public String sessionInfo(HttpServletRequest request)
     {

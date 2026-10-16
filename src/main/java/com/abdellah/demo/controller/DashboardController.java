@@ -39,7 +39,7 @@ public class DashboardController
 
         if (csrfToken == null) 
         {
-            csrfToken = tokenService.generateCsrfToken();
+            csrfToken = this.tokenService.generateCsrfToken();
             session.setAttribute("csrfToken", csrfToken);
         }
 
@@ -50,9 +50,7 @@ public class DashboardController
 
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(
-            HttpServletRequest request,
-            HttpServletResponse response)
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response)
     {
         HttpSession session = request.getSession(false);
         /*----------------------*/
@@ -69,7 +67,7 @@ public class DashboardController
         String expectedToken  = (String) session.getAttribute("csrfToken");
         String submittedToken = request.getHeader("X-CSRF-TOKEN");
 
-        if (!tokenService.secureTokenEquals(expectedToken, submittedToken)) 
+        if (!this.tokenService.secureTokenEquals(expectedToken, submittedToken)) 
         {
             return ResponseEntity.status(403).body("Invalid CSRF token");
         }

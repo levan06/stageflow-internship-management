@@ -21,10 +21,10 @@ registerForm.addEventListener( 'submit', async(event) =>
         const response = await dataFetch.text();
         registerFormResult.textContent = response;
 
-        if (dataFetch.ok && response.trim() === "Account Created") 
+        /*if (dataFetch.ok && response) 
         {
             window.location.assign("login.html");
-        }
+        }*/
     } catch (error) {
         registerFormResult.textContent = "Une erreur est survenue. Réessayez.";
         console.error("Registration failed:", error);

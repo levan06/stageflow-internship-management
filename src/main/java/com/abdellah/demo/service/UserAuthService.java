@@ -62,9 +62,36 @@ public class UserAuthService
         String token = tokenService.generateSecureToken();
 
         user.setEmailVerificationToken(token);
-        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(30));
+        user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusMinutes(15));
 
         userRepository.save(user);
+    }
+
+
+    public boolean verifyEmail(String token)
+    {
+        User user = userRepository.findByEmailVerificationToken(token); 
+
+        if (user == null || user.getEmailVerificationTokenExpiry() == null
+                         || user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now()))
+        {
+            if (user != null) 
+            {
+                user.setEmailVerificationToken(null);
+                user.setEmailVerificationTokenExpiry(null);
+                userRepository.save(user);
+            }
+            return false;
+        }
+
+        // If Evrything Is Valid
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setEmailVerificationTokenExpiry(null);
+        
+        userRepository.save(user);
+
+        return true;
     }
 
 
@@ -77,27 +104,24 @@ public class UserAuthService
      */
     public String isUserLoginValid( User user )
     {
-        if( user == null ) 
+        if( user == null || user.getEmail()    == null || user.getEmail().isBlank()
+                         || user.getPassword() == null || user.getPassword().isBlank() ) 
+        {
             return "Invalid Login"; 
+        }
 
-        if( ! this.userRepository.existsByEmail( user.getEmail() ) )
+        User dbUser = this.userRepository.findByEmail(user.getEmail());
+        if( dbUser == null )
             return "Invalid Login";
 
+        if (!dbUser.isEmailVerified())
+            return "Please verify your email before logging in";
+
         /* Password Verifications */
-        String storedPassword =  getUserPassword( user.getEmail() );
-        if( ! passwordEncoder.matches( user.getPassword(), storedPassword ) )
+        if( ! passwordEncoder.matches( user.getPassword(), dbUser.getPassword() ) )
             return "Invalid Login";
 
         return "Valid";
-    }
-
-    private String getUserPassword( String email )
-    {
-        User userToFind = this.userRepository.findByEmail(email);
-
-        if(userToFind == null) return "User Not Found";
-        
-        return userToFind.getPassword();
     }
 
     public void createUser( User user )
@@ -109,9 +133,35 @@ public class UserAuthService
         this.userRepository.save(user);
     }
 
+
+    /* REPOSITORY CALLS */
     public User findByEmail(String email)
     {
         return userRepository.findByEmail(email);
+    }
+
+    public User findByEmailVerificationToken(String token)
+    {
+        User userSearched = userRepository.findByEmailVerificationToken(token);
+        if (userSearched == null)
+            return null;
+
+        LocalDateTime tokenExpiryTime = userSearched.getEmailVerificationTokenExpiry();
+
+        // Email Token Expired
+        if(tokenExpiryTime == null || tokenExpiryTime.isBefore(LocalDateTime.now()))
+        {
+            // Set the properties to null
+            userSearched.setEmailVerificationToken(null);
+            userSearched.setEmailVerificationTokenExpiry(null);
+
+            // Pass it to the standard save method
+            userRepository.save(userSearched);
+
+            return null;
+        }
+
+        return userSearched;
     }
 
 }

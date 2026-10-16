@@ -61,6 +61,18 @@ public class UserAuthController
     }
 
 
+    @GetMapping("/login.html")
+    public String getLoginPage(HttpServletRequest request)
+    {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("userId") != null)
+        {
+            return "redirect:/dashboard";
+        }
+
+        return "login";
+    }
+
     @PostMapping("/login")
     public ResponseEntity<String> login( @RequestBody User user, HttpServletRequest request )
     {

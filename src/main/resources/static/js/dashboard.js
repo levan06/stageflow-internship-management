@@ -89,13 +89,20 @@ function renderInternships()
         // Attach a click action to this row's delete button.
         deleteButton.addEventListener('click', function ()
         {
-            // Remove this internship, save the change, and redraw the list
-            internships = internships.filter(function (item)
+            if(confirm("Êtes-vous sûr de vouloir supprimer ce champ"))
             {
-                return item.id !== internship.id;
-            });
-            saveInternships();
-            renderInternships();
+                // Remove this internship, save the change, and redraw the list
+                internships = internships.filter(function (item)
+                {
+                    return item.id !== internship.id;
+                });
+                saveInternships();
+                renderInternships();
+            }
+            else
+            {
+                return;
+            }
         });
 
         row.appendChild(deleteButton);
@@ -150,7 +157,7 @@ internshipForm.addEventListener('submit', function (event)
     // Collect the form fields and add a simple ID for later removal
     const formData   = new FormData(event.target);
     const internship = Object.fromEntries(formData.entries());
-    
+
     internship.id = Date.now().toString();
     internships.unshift(internship);
 

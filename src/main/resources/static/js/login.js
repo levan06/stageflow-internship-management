@@ -6,6 +6,14 @@ loginForm.addEventListener( 'submit', async(event) =>
 {
     event.preventDefault();
 
+    const submitButton = loginForm.querySelector('button[type="submit"]');
+    const originalContent = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.classList.add('is-loading');
+    submitButton.textContent = 'Connexion en cours…';
+    loginForm.setAttribute('aria-busy', 'true');
+    loginFormResult.textContent = '';
+
     const formData  = new FormData(event.target);
     const objetData = Object.fromEntries(formData.entries());
     const jsonForm  = JSON.stringify(objetData);
@@ -25,10 +33,16 @@ loginForm.addEventListener( 'submit', async(event) =>
         if( dataFetch.ok && response.trim() === "Valid Account" )
         {
             window.location.replace("/dashboard");
+            return;
         }
     } catch (error) {
         loginFormResult.textContent = "Une erreur est survenue. Réessayez.";
         console.error("Registration failed:", error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.classList.remove('is-loading');
+        submitButton.innerHTML = originalContent;
+        loginForm.removeAttribute('aria-busy');
     }
 });
 
@@ -42,6 +56,8 @@ if (logoutBtn) {
     logoutBtn.addEventListener("click", async () =>
     {
         logoutBtn.disabled = true;
+        logoutBtn.classList.add('is-loading');
+        logoutBtn.textContent = 'Déconnexion…';
 
         try {
             const csrfToken = document.querySelector(
@@ -70,6 +86,8 @@ if (logoutBtn) {
             window.location.replace("/login.html");
         } catch (error) {
             logoutBtn.disabled = false;
+            logoutBtn.classList.remove('is-loading');
+            logoutBtn.innerHTML = '<span class="button-label">Se déconnecter</span>';
             console.error("Logout failed : ", error);
         }
     });

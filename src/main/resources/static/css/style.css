@@ -123,6 +123,30 @@ a {
     margin-top: 4px;
 }
 
+.button:disabled {
+    cursor: wait;
+    opacity: .8;
+    transform: none;
+}
+
+.button.is-loading::before {
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: button-spin .7s linear infinite;
+    content: '';
+}
+
+@keyframes button-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button.is-loading::before { animation-duration: 1.8s; }
+}
+
 .hero-wrap {
     width: 90%;
     max-width: 1180px;

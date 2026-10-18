@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,61 +19,153 @@
         </a>
 
         <nav class="header-nav" aria-label="Navigation du tableau de bord">
-            <a class="nav-link" href="/index.html">Découvrir StageFlow</a>
-            <button type="button" id="logoutBtn" class="button button-small button-light">
-                Se déconnecter
-            </button>
+            <a class="nav-link" href="/index.html">Accueil</a>
+            <button type="button" id="logoutBtn" class="button button-small button-light">Se déconnecter</button>
         </nav>
     </header>
 
     <main class="dashboard-main">
-        <section class="dashboard-welcome">
-            <p class="eyebrow"><span class="eyebrow-line"></span> VOTRE ESPACE CANDIDAT</p>
-            <h1>Votre recherche de stage<span>.</span></h1>
-            <p>Retrouvez ici les outils pour organiser vos candidatures et préparer les prochaines étapes.</p>
+        <section class="dashboard-heading">
+            <div>
+                <p class="eyebrow"><span class="eyebrow-line"></span> VOTRE ESPACE CANDIDAT</p>
+                <h1>Votre recherche de stage<span>.</span></h1>
+                <p class="dashboard-description">Centralisez vos opportunités et gardez le fil de chaque candidature.</p>
+            </div>
+            <button type="button" class="button button-dark" id="openInternshipForm">+ Ajouter un stage</button>
         </section>
 
-        <section class="dashboard-panel" aria-labelledby="application-title">
-            <div class="panel-icon" aria-hidden="true">↗</div>
+        <section class="dashboard-stats" aria-label="Résumé de vos candidatures">
+            <article class="stat-card">
+                <span class="stat-icon">↗</span>
+                <div>
+                    <p>Total des stages</p><strong id="totalCount">0</strong>
+                </div>
+            </article>
 
-            <div>
-                <p class="card-kicker">PREMIÈRE ÉTAPE</p>
-                <h2 id="application-title">Organisez votre recherche</h2>
-                <p>Votre espace est prêt. Les fonctions de suivi des candidatures pourront être ajoutées ici.</p>
+            <article class="stat-card">
+                <span class="stat-icon stat-icon-blue">◷</span>
+                <div>
+                    <p>En cours</p><strong id="activeCount">0</strong>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <span class="stat-icon stat-icon-green">✓</span>
+                <div>
+                    <p>Entretiens</p><strong id="interviewCount">0</strong>
+                </div>
+            </article>
+        </section>
+
+        <section class="internship-section" aria-labelledby="internships-title">
+            <div class="section-heading">
+                <div>
+                    <p class="card-kicker">VOTRE PARCOURS</p>
+                    <h2 id="internships-title">Mes candidatures</h2>
+                </div>
+                
+                <label class="filter-wrap" for="statusFilter"><span class="sr-only">Filtrer par statut</span>
+                    <select id="statusFilter">
+                        <option value="all">Tous les statuts</option>
+                        <option>À découvrir</option>
+                        <option>À postuler</option>
+                        <option>Candidature envoyée</option>
+                        <option>Entretien</option>
+                        <option>Refusée</option>
+                        <option>Acceptée</option></select>
+                </label>
             </div>
 
-            <a class="button button-dark" href="/index.html#features">Découvrir les outils <span aria-hidden="true">→</span></a>
+            <div id="internshipList" class="internship-list" aria-live="polite"></div>
+
+            <div id="emptyState" class="empty-state">
+                <div class="empty-icon" aria-hidden="true">✳</div>
+                <h3>Votre suivi commence ici</h3>
+                <p>Ajoutez une opportunité pour garder les informations et prochaines étapes au même endroit.</p>
+                <button type="button" class="button button-light" id="emptyAddButton">Ajouter ma première candidature</button>
+            </div>
         </section>
 
-        <section class="dashboard-cards" aria-label="Outils de recherche de stage">
-            <article class="dashboard-card">
-                <span class="dashboard-card-number">01</span>
-                <h2>Mes candidatures</h2>
-                <p>Un aperçu des offres auxquelles vous souhaitez postuler.</p>
-                <span class="card-status">Suivi à venir</span>
-            </article>
+        <section class="form-overlay" id="internshipFormPanel" hidden aria-labelledby="form-title">
+            <div class="internship-form-card">
+                <div class="form-panel-heading">
+                    <div>
+                        <p class="card-kicker">NOUVELLE OPPORTUNITÉ</p>
+                        <h2 id="form-title">Ajouter un stage</h2>
+                        <p class="subtitle">Notez les informations essentielles pour suivre votre candidature.</p>
+                    </div>
+                    <button type="button" class="close-form" id="closeInternshipForm" aria-label="Fermer">×</button>
+                </div>
 
-            <article class="dashboard-card">
-                <span class="dashboard-card-number">02</span>
-                <h2>Mes entretiens</h2>
-                <p>Les dates et les informations utiles pour vous préparer.</p>
-                <span class="card-status">Suivi à venir</span>
-            </article>
+                <form id="internshipForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="company">Entreprise *</label>
+                            <input id="company" name="company" placeholder="Ex. Studio Atlas" required maxlength="80">
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Intitulé du poste *</label>
+                            <input id="role" name="role" placeholder="Ex. Développeur web" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Lieu</label>
+                            <input id="location" name="location" placeholder="Ex. Paris, France" maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="workMode">Mode de travail</label>
+                            <select id="workMode" name="workMode"><option value="">Choisir</option>
+                                <option>Sur site</option><option>Hybride</option>
+                                <option>À distance</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicationDate">Date de candidature</label>
+                            <input id="applicationDate" name="applicationDate" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="deadline">Date limite</label>
+                            <input id="deadline" name="deadline" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Statut</label>
+                            <select id="status" name="status">
+                                <option>À découvrir</option>
+                                <option>À postuler</option>
+                                <option>Candidature envoyée</option>
+                                <option>Entretien</option>
+                                <option>Refusée</option>
+                                <option>Acceptée</option>
+                            </select>
+                        </div>
 
-            <article class="dashboard-card">
-                <span class="dashboard-card-number">03</span>
-                <h2>Mes documents</h2>
-                <p>Retrouvez vos CV, lettres et notes au même endroit.</p>
-                <span class="card-status">Espace à compléter</span>
-            </article>
+                        <div class="form-group">
+                            <label for="contact">Contact (facultatif)</label>
+                            <input id="contact" name="contact" placeholder="Nom ou adresse e-mail" maxlength="120">
+                        </div>
+                        <div class="form-group form-group-wide">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" name="notes" rows="3" placeholder="Lien de l'offre, prochaines étapes, informations utiles…" maxlength="1000"></textarea>
+                        </div>
+                    </div>
+                    <p class="storage-note">Données enregistrées dans le navigateur pour cette version.</p>
+                    <div class="form-actions">
+                        <button type="button" id="cancelInternshipForm" class="button button-light">Annuler</button>
+                        <button type="submit" class="button button-dark">Enregistrer le stage<span aria-hidden="true">→</span>
+                    </button>
+                </div>
+                </form>
+            </div>
         </section>
     </main>
 
     <footer class="site-footer dashboard-footer">
-        <span>Bonne chance dans votre recherche de stage.</span>
-        <span class="footer-right">STAGEFLOW <span aria-hidden="true">·</span> 2026</span>
+        <span>Un pas après l'autre vers votre prochain stage.</span>
+        <span class="footer-right">
+            STAGEFLOW<span aria-hidden="true">·</span> 2026
+        </span>
     </footer>
-
+    
+    <script src="/js/dashboard.js"></script>
     <script src="/js/login.js"></script>
 </body>
 </html>
